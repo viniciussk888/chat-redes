@@ -1,10 +1,10 @@
-/* eslint-disable react-hooks/exhaustive-deps */
-/* eslint-disable @typescript-eslint/no-var-requires */
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 import { useEffect, useRef, useState } from "react";
 import styled from "styled-components";
 import FlatList from "flatlist-react";
 import { MensagemComponent } from "./components/MensagemComponent";
-const WebSocketSignalRService = require("./service/WebSocketSignalR.service");
+// @ts-ignore
+import WebSocketSignalRService from "./service/WebSocketSignalR.service";
 import axios from "axios";
 
 type Mensagem = {
