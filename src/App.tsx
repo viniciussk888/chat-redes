@@ -52,6 +52,7 @@ function App() {
 
   const scrollToBottom = () => {
     if (chatEndRef.current) {
+      // @ts-ignore
       chatEndRef?.current?.scrollIntoView({
         behavior: "smooth",
         block: "end",
