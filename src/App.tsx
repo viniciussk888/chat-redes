@@ -1,8 +1,10 @@
+/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable @typescript-eslint/no-var-requires */
 import { useEffect, useRef, useState } from "react";
 import styled from "styled-components";
 import FlatList from "flatlist-react";
 import { MensagemComponent } from "./components/MensagemComponent";
-import WebSocketSignalRService from "./service/WebSocketSignalR.service";
+const WebSocketSignalRService = require("./service/WebSocketSignalR.service");
 import axios from "axios";
 
 type Mensagem = {
