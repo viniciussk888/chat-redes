@@ -2,6 +2,9 @@ import { useEffect, useRef, useState } from "react";
 import styled from "styled-components";
 import FlatList from "flatlist-react";
 import { MensagemComponent } from "./components/MensagemComponent";
+import hubConnection, {
+  startSignalRConnection,
+} from "./service/signalRservice";
 
 type Mensagem = {
   id: string;
@@ -43,6 +46,14 @@ function App() {
   ]);
   const chatEndRef = useRef(null);
 
+  // receive token and id from url params
+  const urlParams = new URLSearchParams(window.location.search);
+  const token = urlParams.get("token");
+  const destinatarioId = urlParams.get("destinatarioId");
+
+  console.log("token", token);
+  console.log("destinatarioId", destinatarioId);
+
   useEffect(() => {
     scrollToBottom();
   }, [mensagens]);
@@ -73,6 +84,27 @@ function App() {
     }, 1000);
 
     return () => clearInterval(interval);
+  }, []);
+  useEffect(() => {
+    startSignalRConnection();
+
+    // Defina os handlers para receber as mensagens do hub
+    hubConnection.on("onReceiveMessage", (user, message) => {
+      console.log("New message received:", user, message);
+      // Faça o que quiser com a mensagem recebida (por exemplo, atualizar o estado do componente, exibir a mensagem na tela, etc.)
+      setMensagens((mensagens) => [...mensagens, message]);
+    });
+
+    // Caso deseje realizar alguma ação ao se desconectar do SignalR
+    hubConnection.onclose((err) => {
+      console.log("SignalR connection closed:", err);
+    });
+
+    // Importante: Não se esqueça de remover os handlers quando o componente é desmontado
+    return () => {
+      hubConnection.off("ReceiveMessage");
+      hubConnection.stop();
+    };
   }, []);
   return (
     <Wrapper>
