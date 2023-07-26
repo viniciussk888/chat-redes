@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import styled from "styled-components";
 import FlatList from "flatlist-react";
 import { MensagemComponent } from "./components/MensagemComponent";
@@ -41,6 +41,21 @@ function App() {
       minhaMensagem: true,
     },
   ]);
+  const chatEndRef = useRef(null);
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [mensagens]);
+
+  const scrollToBottom = () => {
+    if (chatEndRef.current) {
+      chatEndRef?.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "end",
+        inline: "nearest",
+      });
+    }
+  };
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -73,6 +88,7 @@ function App() {
         )}
         renderWhenEmpty={() => <div>Chat vazio</div>}
       />
+      <div ref={chatEndRef} />
     </Wrapper>
   );
 }
