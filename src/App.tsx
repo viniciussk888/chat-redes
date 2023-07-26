@@ -2,9 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import styled from "styled-components";
 import FlatList from "flatlist-react";
 import { MensagemComponent } from "./components/MensagemComponent";
-import hubConnection, {
-  startSignalRConnection,
-} from "./service/signalRservice";
+import WebSocketSignalRService from "./service/WebSocketSignalR.service";
+import axios from "axios";
 
 type Mensagem = {
   id: string;
@@ -18,41 +17,32 @@ type Mensagem = {
 };
 
 function App() {
-  const [mensagens, setMensagens] = useState<Mensagem[]>([
-    {
-      id: "1",
-      remetenteId: "1",
-      mensagem: "Olá, tudo bem?",
-      enviadoEm: "2021-08-01T18:00:00",
-      visualizada: true,
-      minhaMensagem: true,
-    },
-    {
-      id: "2",
-      remetenteId: "2",
-      mensagem: "Tudo ótimo, e você?",
-      enviadoEm: "2021-08-01T18:01:00",
-      visualizada: true,
-      minhaMensagem: false,
-    },
-    {
-      id: "2",
-      remetenteId: "2",
-      mensagem: "Tudo ótimo?",
-      enviadoEm: "2021-08-01T18:01:00",
-      visualizada: false,
-      minhaMensagem: true,
-    },
-  ]);
+  const [mensagens, setMensagens] = useState<Mensagem[]>([]);
+  const [socketConnectionReady, setSocketConnectionReady] = useState(false);
   const chatEndRef = useRef(null);
-
   // receive token and id from url params
   const urlParams = new URLSearchParams(window.location.search);
   const token = urlParams.get("token");
   const destinatarioId = urlParams.get("destinatarioId");
 
-  console.log("token", token);
-  console.log("destinatarioId", destinatarioId);
+  const getMensagens = async () => {
+    const response = await axios.get(
+      `https://rede-sebrae-api.azurewebsites.net/chat/${destinatarioId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    const mensagens = response.data.items;
+    setMensagens(mensagens);
+  };
+
+  useEffect(() => {
+    if (token && destinatarioId) {
+      getMensagens();
+    }
+  }, [token, destinatarioId]);
 
   useEffect(() => {
     scrollToBottom();
@@ -69,43 +59,34 @@ function App() {
   };
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setMensagens((mensagens) => [
-        ...mensagens,
-        {
-          id: "2",
-          remetenteId: "2",
-          mensagem: "Tudo ótimo?",
-          enviadoEm: "2021-08-01T18:01:00",
-          visualizada: false,
-          minhaMensagem: Math.random() > 0.5,
-        },
-      ]);
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, []);
-  useEffect(() => {
-    startSignalRConnection();
-
-    // Defina os handlers para receber as mensagens do hub
-    hubConnection.on("onReceiveMessage", (user, message) => {
-      console.log("New message received:", user, message);
-      // Faça o que quiser com a mensagem recebida (por exemplo, atualizar o estado do componente, exibir a mensagem na tela, etc.)
-      setMensagens((mensagens) => [...mensagens, message]);
-    });
-
-    // Caso deseje realizar alguma ação ao se desconectar do SignalR
-    hubConnection.onclose((err) => {
-      console.log("SignalR connection closed:", err);
-    });
-
-    // Importante: Não se esqueça de remover os handlers quando o componente é desmontado
+    if (token && !socketConnectionReady) {
+      WebSocketSignalRService.initSocketConnection(token).then(() => {
+        console.log("Connection ready!");
+        setSocketConnectionReady(true);
+      });
+    }
     return () => {
-      hubConnection.off("ReceiveMessage");
-      hubConnection.stop();
+      WebSocketSignalRService.closeSocketConnection().then(() => {
+        console.log("Connection Closed!");
+        setSocketConnectionReady(false);
+      });
     };
-  }, []);
+  }, [token]);
+
+  useEffect(() => {
+    if (socketConnectionReady) {
+      WebSocketSignalRService.onReceiveMessage(
+        "receberMensagemDeUsuario",
+        async function (mensagem: Mensagem) {
+          console.log("Receber mensagem habilitado");
+          setMensagens([...mensagens, mensagem]);
+        }
+      );
+    }
+    return () => {
+      WebSocketSignalRService.unsubscribeMessage("receberMensagemDeUsuario");
+    };
+  }, [socketConnectionReady]);
   return (
     <Wrapper>
       <FlatList
