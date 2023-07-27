@@ -5,13 +5,13 @@ class WebSocketSignalRService {
     if (!this.connection) {
       this.connection = await new signalR.HubConnectionBuilder()
         .withUrl("https://rede-sebrae-api.azurewebsites.net/rede-chat", {
-          skipNegotiation: true,
-          transport: signalR.HttpTransportType.WebSockets,
+          //skipNegotiation: true,
+          // transport: signalR.HttpTransportType.WebSockets,
           accessTokenFactory: () => token,
         })
-        .withAutomaticReconnect()
-        .withHubProtocol(new signalR.JsonHubProtocol())
-        .configureLogging(signalR.LogLevel.Information)
+        // .withAutomaticReconnect()
+        //  .withHubProtocol(new signalR.JsonHubProtocol())
+        //  .configureLogging(signalR.LogLevel.Information)
         .build();
 
       WebSocketSignalRService.startConnection(callback);
