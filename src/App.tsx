@@ -82,7 +82,8 @@ function App() {
         "receberMensagemDeUsuario",
         async function (mensagem: Mensagem) {
           console.log("Receber mensagem habilitado");
-          setMensagens([...mensagens, mensagem]);
+          console.log(mensagem);
+          getMensagens();
         }
       );
     }
