@@ -27,6 +27,13 @@ function App() {
   const token = urlParams.get("token");
   const destinatarioId = urlParams.get("destinatarioId");
 
+  useEffect(() => {
+    const interval = setInterval(() => {
+      getMensagens();
+    }, 2000);
+    return () => clearInterval(interval);
+  }, []);
+
   const getMensagens = async () => {
     const response = await axios.get(
       `https://rede-sebrae-api.azurewebsites.net/chat/${destinatarioId}`,
@@ -116,7 +123,7 @@ const Wrapper = styled.div`
   background-color: #fbfaff;
   padding-inline: 5px;
   width: 95vw;
-  height: 100vh;
+  height: 100%;
 `;
 
 export default App;
