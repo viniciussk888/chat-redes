@@ -152,6 +152,7 @@ const Wrapper = styled.div`
   padding-inline: 5px;
   width: 95vw;
   height: 100%;
+  padding-bottom: 60px;
 `;
 
 const SendMessageWrapper = styled.div`
